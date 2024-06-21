@@ -40,6 +40,7 @@ exports.Status = {
 exports.Events = {
     AUTHENTICATED: 'authenticated',
     AUTHENTICATION_FAILURE: 'auth_failure',
+    AUTHENTICATION_NEEDED: 'auth_needed',
     READY: 'ready',
     CHAT_REMOVED: 'chat_removed',
     CHAT_ARCHIVED: 'chat_archived',

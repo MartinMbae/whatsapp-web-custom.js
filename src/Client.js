@@ -121,6 +121,7 @@ class Client extends EventEmitter {
             return state == 'UNPAIRED' || state == 'UNPAIRED_IDLE';
         });
 
+        this.emit(Events.AUTHENTICATION_NEEDED, needAuthentication);
         if (needAuthentication) {
             const { failed, failureEventPayload, restart } = await this.authStrategy.onAuthenticationNeeded();
 
