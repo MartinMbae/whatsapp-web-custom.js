@@ -1001,6 +1001,84 @@ class Client extends EventEmitter {
         return contacts.map(contact => ContactFactory.create(this, contact));
     }
 
+    
+    parseColor(g) {
+        if ('number' === typeof g) g = 0 < g ? g : 4294967295 + Number(g) + 1; else if ('string' === typeof g) g = g.trim().replace('#', ''), 6 >= g.length && (g = 'FF' + g.padStart(6, '0')), g = parseInt(g, 16); else throw new InvalidColor(g);
+        return g;
+    }
+
+    async sendTextStatus(color, fontStyle, text) {
+        let parsedColor = this.parseColor(color);
+        return await this.pupPage.evaluate(async (parsedColor, fontStyle, text) => {
+            let sendStatusAction = window.Store.SendStatusMsgAction;
+            let share = await sendStatusAction.sendStatusTextMsgAction({
+                color: parsedColor,
+                font: fontStyle,
+                text: text
+            });
+            return share.messageSendResult.toLowerCase() === 'ok';
+        }, parsedColor, fontStyle, text);
+    }
+
+    async sendMediaStatus(media, caption, statusType) {
+        return await this.pupPage.evaluate(async (media, caption, statusType) => {
+            let sendStatusAction = window.Store.SendStatusMsgAction;
+            let statusBroadcast = window.Store.SocketWap.STATUS_BROADCAST;
+            const statusWid = window.Store.WidFactory.createWid(statusBroadcast);
+            const chat = await window.Store.Chat.find(statusWid);
+
+            let msgDataUtils =  window.Store.MsgDataUtils;
+            let generatedOutgoingMsg = await msgDataUtils.genOutgoingMsgData(chat, statusType);
+            let processed =  await window.WWebJS.processMediaData(media, {
+                forceVoice: false,
+                forceDocument: false,
+                forceGif: false
+            });
+            let optionsV = {
+                ...generatedOutgoingMsg,
+                type: statusType,
+                caption: caption,
+                footer: "",
+                quotedMsg: {},
+                attachment:media,
+                mediaObject:media,
+                mediaMetadata:media,
+                mediaData:media,
+                media:media,
+                backgroundColor:  "#ffffff",
+                ephemeralDuration: null,
+                ephemeralSettingTimestamp: null,
+                disappearingModeInitiator: null,
+                messageSecret: null,
+                isAvatar: false,
+                ...processed
+            };
+
+            
+            let callback = function (messageData) {
+            }
+
+            let share = await sendStatusAction.sendStatusMediaMsgAction(optionsV, callback);
+            return share.messageSendResult.toLowerCase() === 'ok';
+            }, media, caption, statusType);
+    }
+
+
+  
+    async setStatusPrivacy(contactList) {
+        return await this.pupPage.evaluate(async (contactList) => {
+            let statusPrivacy = window.Store.StatusPrivacy;
+            let contactWids = contactList.map((contactId => {
+                return window.Store.WidFactory.createWid(contactId);
+            }));
+            await statusPrivacy.setStatusPrivacyConfig({setting: 'allow-list', list: contactWids});
+            let after = await statusPrivacy.getStatusPrivacySetting();
+            return after === 'allow-list';
+        }, contactList);
+    }
+
+    
+
     /**
      * Get contact instance by ID
      * @param {string} contactId

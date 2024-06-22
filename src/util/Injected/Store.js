@@ -97,6 +97,12 @@ exports.ExposeStore = () => {
     window.Store.Settings = window.require('WAWebUserPrefsGeneral');
     window.Store.BotSecret = window.require('WAWebBotMessageSecret');
     window.Store.BotProfiles = window.require('WAWebBotProfileCollection');
+    
+    window.Store.StatusPrivacy = window.require('WAWebUserPrefsStatus');
+    window.Store.ABProps = window.require('WAWebABProps');
+    window.Store.MsgDataUtils = window.require('WAWebMsgDataUtils');
+    window.Store.SendStatusMsgAction = window.require('WAWebSendStatusMsgAction');
+    
     if (window.compareWwebVersions(window.Debug.VERSION, '>=', '2.3000.1014111620')) 
         window.Store.AddonReactionTable = window.require('WAWebAddonReactionTableMode').reactionTableMode;
     
