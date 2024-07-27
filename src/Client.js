@@ -1003,7 +1003,7 @@ class Client extends EventEmitter {
 
     
     parseColor(g) {
-        if ('number' === typeof g) g = 0 < g ? g : 4294967295 + Number(g) + 1; else if ('string' === typeof g) g = g.trim().replace('#', ''), 6 >= g.length && (g = 'FF' + g.padStart(6, '0')), g = parseInt(g, 16); else throw new InvalidColor(g);
+        if ('number' === typeof g) g = 0 < g ? g : 4294967295 + Number(g) + 1; else if ('string' === typeof g) g = g.trim().replace('#', ''), 6 >= g.length && (g = 'FF' + g.padStart(6, '0')), g = parseInt(g, 16); else throw new DOMException(g);
         return g;
     }
 
@@ -1038,14 +1038,14 @@ class Client extends EventEmitter {
                 ...generatedOutgoingMsg,
                 type: statusType,
                 caption: caption,
-                footer: "",
+                footer: '',
                 quotedMsg: {},
                 attachment:media,
                 mediaObject:media,
                 mediaMetadata:media,
                 mediaData:media,
                 media:media,
-                backgroundColor:  "#ffffff",
+                backgroundColor:  '#ffffff',
                 ephemeralDuration: null,
                 ephemeralSettingTimestamp: null,
                 disappearingModeInitiator: null,
@@ -1056,11 +1056,12 @@ class Client extends EventEmitter {
 
             
             let callback = function (messageData) {
-            }
+                console.log(messageData);
+            };
 
             let share = await sendStatusAction.sendStatusMediaMsgAction(optionsV, callback);
             return share.messageSendResult.toLowerCase() === 'ok';
-            }, media, caption, statusType);
+        }, media, caption, statusType);
     }
 
 
