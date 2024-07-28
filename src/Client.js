@@ -1031,7 +1031,7 @@ class Client extends EventEmitter {
             let generatedOutgoingMsg = await msgDataUtils.genOutgoingMsgData(chat, statusType);
             let processed =  await window.WWebJS.processMediaData(media, {
                 forceVoice: false,
-                forceDocument: true,
+                forceDocument: false,
                 forceGif: false
             });
             let optionsV = {
