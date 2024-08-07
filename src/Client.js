@@ -95,8 +95,9 @@ class Client extends EventEmitter {
     async inject(reinject = false) {
         await this.pupPage.waitForFunction('window.Debug?.VERSION != undefined', {timeout: this.options.authTimeoutMs});
 
-        const version = await this.getWWebVersion();
-        const isCometOrAbove = parseInt(version.split('.')?.[1]) >= 3000;
+        // const version = await this.getWWebVersion();
+        // const isCometOrAbove = parseInt(version.split('.')?.[1]) >= 3000;
+        const isCometOrAbove = true;
 
         if (isCometOrAbove) {
             await this.pupPage.evaluate(ExposeAuthStore);
@@ -820,10 +821,32 @@ class Client extends EventEmitter {
      * Returns the version of WhatsApp Web currently being run
      * @returns {Promise<string>}
      */
-    async getWWebVersion() {
+    async getWWebVersionOr() {
         return await this.pupPage.evaluate(() => {
             return window.Debug.VERSION;
         });
+    }
+
+    async getWWebVersion(retries = 5) {
+        for (let i = 0; i < retries; i++) {
+            try {
+                await this.pupPage.waitForSelector('body'); // Ensure the page is loaded
+                return await this.pupPage.evaluate(() => {
+                    return window.Debug.VERSION;
+                });
+            } catch (error) {
+                if (i === retries - 1) {
+                    throw error; // Rethrow the error if this was the last retry
+                }
+                // If the error is related to navigation, retry after a short delay
+                if (error.message.includes('Execution context was destroyed')) {
+                    console.warn(`Retrying getWWebVersion due to navigation... Attempt ${i + 1}`);
+                    await this.delay(3000); // Wait for 1 second before retrying
+                } else {
+                    throw error; // If it's a different error, rethrow it
+                }
+            }
+        }
     }
 
     /**
