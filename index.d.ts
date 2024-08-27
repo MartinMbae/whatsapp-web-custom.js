@@ -508,6 +508,7 @@ declare namespace WAWebJS {
         disconnect: () => Promise<void>;
         destroy: () => Promise<void>;
         logout: () => Promise<void>;
+        deleteOnlineSession: () => Promise<void>;
     }
 
     /**

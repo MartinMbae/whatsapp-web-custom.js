@@ -69,6 +69,13 @@ class RemoteAuth extends BaseAuthStrategy {
         await this.disconnect();
     }
 
+    async deleteOnlineSession() {
+        console.log("Deleting remote session");
+        await this.deleteRemoteSession();
+        console.log("Recreating session again");
+        await this.storeRemoteSession({emit: true});
+    }
+
     async destroy() {
         clearInterval(this.backupSync);
     }
@@ -88,14 +95,15 @@ class RemoteAuth extends BaseAuthStrategy {
 
     async afterAuthReady() {
         const sessionExists = await this.store.sessionExists({session: this.sessionName});
+        console.log("Session Exisx is ", sessionExists);
         if(!sessionExists) {
-            await this.delay(60000); /* Initial delay sync required for session to be stable enough to recover */
+            await this.delay(30000); /* Initial delay sync required for session to be stable enough to recover */
             await this.storeRemoteSession({emit: true});
         }
-        var self = this;
-        this.backupSync = setInterval(async function () {
-            await self.storeRemoteSession();
-        }, this.backupSyncIntervalMs);
+        // var self = this;
+        // this.backupSync = setInterval(async function () {
+            // await self.storeRemoteSession();
+        // }, this.backupSyncIntervalMs);
     }
 
     async storeRemoteSession(options) {
@@ -106,6 +114,10 @@ class RemoteAuth extends BaseAuthStrategy {
             await this.store.save({session: this.sessionName});
             await fs.promises.unlink(`${this.sessionName}.zip`);
             await fs.promises.rm(`${this.tempDir}`, {
+                recursive: true,
+                force: true
+            }).catch(() => {});
+            await fs.promises.rm(`${this.sessionName}`, {
                 recursive: true,
                 force: true
             }).catch(() => {});
@@ -170,6 +182,7 @@ class RemoteAuth extends BaseAuthStrategy {
         for (const dir of sessionDirs) {
             const sessionFiles = await fs.promises.readdir(dir);
             for (const element of sessionFiles) {
+                // if (!this.requiredDirs.includes(element)) {
                 if (!this.requiredDirs.includes(element)) {
                     const dirElement = path.join(dir, element);
                     const stats = await fs.promises.lstat(dirElement);
